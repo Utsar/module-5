@@ -46,7 +46,7 @@ authorsRouter.get("/:authorId", async (req, res, next) => {
 authorsRouter.post("/", async (req, res, next) => {
   try {
     const { name, surname, email, dateOfBirth } = req.body;
-    const newAuthor = {
+    const author = {
       id: uniqid(),
       name,
       surname,
@@ -59,9 +59,9 @@ authorsRouter.post("/", async (req, res, next) => {
     const fileAsBuffer = fs.readFileSync(authorsFilePath);
     const fileAsString = fileAsBuffer.toString();
     const fileAsJSONArray = JSON.parse(fileAsString);
-    fileAsJSONArray.push(newAuthor);
-    fs.writeFile(authorsFilePath, JSON.stringify(fileAsJSONArray));
-    res.send(newAuthor);
+    fileAsJSONArray.push(author);
+    fs.writeFileSync(authorsFilePath, JSON.stringify(fileAsJSONArray));
+    res.send(author);
   } catch (error) {
     res.send(500).send({ message: error.message });
   }
