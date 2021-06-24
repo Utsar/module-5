@@ -38,6 +38,19 @@ authorsRouter.get("/", async (req, res, next) => {
 // GET single
 authorsRouter.get("/:authorId", async (req, res, next) => {
   try {
+    const fileAsBuffer = fs.readFileSync(authorsFilePath);
+    const fileAsString = fileAsBuffer.toString();
+    const fileAsJSONArray = JSON.parse(fileAsString);
+    const author = fileAsJSONArray.find(
+      (author) => author.authorId === req.params.authorsId
+    );
+    if (!author) {
+      res.status(404).send({
+        message: `Author with an id of ${req.params.authorId} is not found`,
+      });
+    } else {
+      res.send(author);
+    }
   } catch (error) {
     res.send(500).send({ message: error.message });
   }
@@ -69,13 +82,52 @@ authorsRouter.post("/", async (req, res, next) => {
 // PUT - update
 authorsRouter.put("/:authorId", async (req, res, next) => {
   try {
+    const fileAsBuffer = fs.readFileSync(authorsFilePath);
+    const fileAsString = fileAsBuffer.toString();
+    let fileAsJSONArray = JSON.parse(fileAsString);
+    const authorIndex = fileAsJSONArray.findIndex(
+      (author) => author.authorId === req.params.authorsId
+    );
+    if (!authorIndex == -1) {
+      res.status(404).send({
+        message: `Author with an id of ${req.params.authorId} is not found`,
+      });
+    }
+    const previousAuthorData = fileAsJSONArray[authorIndex];
+    const changedAuthor = {
+      ...previousAuthorData,
+      ...req.body,
+      updatedAt: new Date(),
+      id: req.params.authorId,
+    };
+    fileAsJSONArray[authorIndex] = changedAuthor;
+    fs.writeFileSync(authorsFilePath, JSON.stringify(fileAsJSONArray));
+    res.send(changedAuthor);
   } catch (error) {
     res.send(500).send({ message: error.message });
   }
 });
+
 // Delete
 authorsRouter.delete("/:authorId", async (req, res, next) => {
   try {
+    const fileAsBuffer = fs.readFileSync(authorsFilePath);
+    const fileAsString = fileAsBuffer.toString();
+    let fileAsJSONArray = JSON.parse(fileAsString);
+    const author = fileAsJSONArray.find(
+      (author) => author.authorId === req.params.authorsId
+    );
+    if (!author) {
+      res.status(404).send({
+        message: `Author with an id of ${req.params.authorId} is not found`,
+      });
+    } else {
+      fileAsJSONArray = fileAsJSONArray.filter(
+        (author) => author.authorId !== req.params.authorsId
+      );
+    }
+    fs.writeFileSync(authorsFilePath, JSON.stringify(fileAsJSONArray));
+    res.status(204).send();
   } catch (error) {
     res.send(500).send({ message: error.message });
   }
